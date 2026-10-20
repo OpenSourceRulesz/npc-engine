@@ -27,7 +27,8 @@ ROW = {
 
 
 def test_convert_row_basic():
-    triples, skipped = convert_row(ROW)    assert len(triples) == 2
+    triples, skipped = convert_row(ROW)
+    assert len(triples) == 2
     t0 = triples[0]
     assert t0["persona"]["name"] == "Renn"
     assert t0["persona"]["description"] == "A weathered traveler with a scar."
