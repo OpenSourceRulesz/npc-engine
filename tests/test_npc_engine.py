@@ -172,3 +172,32 @@ def test_respond_prompt_mentions_persona():
     eng = make_engine([[7, 8]])
     ids = eng._prompt_ids(PERSONA, "Somewhere.", "Hi")
     assert ids.shape == (1, PROMPT_LEN)
+
+
+# ------------------------------------------------------------- loader kwargs
+
+def test_loader_uses_quantization_config_for_8bit(monkeypatch):
+    """Regression: load_in_8bit=True as a raw kwarg crashes Dream's custom
+    __init__ on modern transformers; it must go via BitsAndBytesConfig."""
+    import transformers
+
+    captured = {}
+
+    class StubModel(FakeModel):
+        def to(self, device):
+            return self
+
+    def fake_from_pretrained(model_id, **kwargs):
+        captured.update(kwargs)
+        return StubModel([[7, 8]])
+
+    monkeypatch.setattr(transformers.AutoModel, "from_pretrained",
+                        staticmethod(fake_from_pretrained))
+    monkeypatch.setattr(transformers.AutoTokenizer, "from_pretrained",
+                        staticmethod(lambda *a, **k: FakeTokenizer()))
+
+    eng = NPCEngine(load_in_8bit=True, device="cpu")
+    assert "load_in_8bit" not in captured
+    assert "quantization_config" in captured
+    assert captured.get("device_map") == "auto"
+    assert eng.mask_token_id == MASK

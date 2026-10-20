@@ -50,7 +50,12 @@ class NPCEngine:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         kwargs = {"trust_remote_code": True}
         if load_in_8bit:
-            kwargs["load_in_8bit"] = True
+            # Modern transformers: 8-bit loading goes through a quantization
+            # config + device_map. Passing load_in_8bit=True directly leaks the
+            # kwarg into the custom model's __init__ and crashes it.
+            from transformers import BitsAndBytesConfig
+            kwargs["quantization_config"] = BitsAndBytesConfig(load_in_8bit=True)
+            kwargs["device_map"] = "auto"
         else:
             kwargs["torch_dtype"] = torch_dtype or torch.float16
         self.model = AutoModel.from_pretrained(model_id, **kwargs)
