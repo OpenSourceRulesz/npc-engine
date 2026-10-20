@@ -30,7 +30,7 @@ def to_bidirectional_mask(attention_mask: torch.Tensor,
     key_ok = attention_mask.bool()
     mask = torch.zeros(
         (attention_mask.size(0), 1, attention_mask.size(1), attention_mask.size(1)),
-        dtype=dtype,
+        dtype=dtype, device=attention_mask.device,
     )
     mask.masked_fill_(~key_ok[:, None, None, :], neg)
     return mask

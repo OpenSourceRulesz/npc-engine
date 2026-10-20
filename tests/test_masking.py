@@ -93,6 +93,9 @@ def test_bidirectional_mask():
     assert (m[1, 0, :, :2] == 0).all()
     # no row is fully masked (would NaN the softmax)
     assert (m > neg).any(dim=-1).all()
+    # output lives on the INPUT's device (regression: on GPU runs the mask
+    # was built on CPU while the batch was on cuda -> RuntimeError)
+    assert m.device == attn.device
 
 
 def test_triple_to_example_history_split():

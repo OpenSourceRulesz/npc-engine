@@ -79,6 +79,9 @@ def train(base_model="Dream-org/Dream-v0-Instruct-7B", data="data/sft_examples.j
         opt, int(0.03 * total_steps), total_steps)
     collate = MaskingCollator(tokenizer, max_len=max_len, seed=seed)
     device = next(model.parameters()).device
+    # attention mask must match the model's compute dtype (bf16 on GPU) —
+    # SDPA rejects mismatched mask/query dtypes on CUDA backends
+    mask_dtype = model.get_input_embeddings().weight.dtype
 
     rng = random.Random(seed)
     step, micro, window_loss, t0 = 0, 0, 0.0, time.time()
@@ -95,7 +98,8 @@ def train(base_model="Dream-org/Dream-v0-Instruct-7B", data="data/sft_examples.j
             feats = {k: v.to(device) for k, v in feats.items()}
             logits = model(
                 input_ids=feats["input_ids"],
-                attention_mask=to_bidirectional_mask(feats["attention_mask"]),
+                attention_mask=to_bidirectional_mask(
+                    feats["attention_mask"], dtype=mask_dtype),
             ).logits
             loss = F.cross_entropy(
                 logits.view(-1, logits.size(-1)).float(),
