@@ -50,6 +50,8 @@ def main():
         md("## Load the model (8-bit fits a T4 16GB)"),
         code("from npc_engine.engine import NPCEngine\n",
              "from npc_engine.personas import STARTER_PERSONAS\n",
+             "import npc_engine\n",
+             "print('npc_engine version:', npc_engine.__version__)  # must say 0.1.1 or later\n",
              "\n",
              "engine = NPCEngine(load_in_8bit=True)\n",
              "print('ready on', engine.device)\n"),
