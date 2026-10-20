@@ -1,8 +1,14 @@
-# NPC Engine — Phase 0
+# NPC Engine
 
-A tiny text-diffusion NPC dialogue engine. Proves that a diffusion LM (Dream 7B
-Instruct) can generate in-character NPC lines with **parallel candidate
-generation + confidence ranking**, at interactive latency, on a single GPU.
+A tiny text-diffusion NPC dialogue engine, **built for indie and small devs**:
+free, open source, runs locally — no API keys, no per-player costs, no server.
+Proves that a diffusion LM (Dream 7B Instruct) can generate in-character NPC
+lines with **parallel candidate generation + confidence ranking**, at
+predictable latency, on a single GPU.
+
+Phase 0 (base model, zero training) is validated — see `PHASE0_RESULTS.md`.
+Phase 1 is a LoRA fine-tune on 74k openly licensed dialogue triples —
+`colab_finetune.ipynb` runs the whole thing free on Colab.
 
 ## The diffusion-native design
 

@@ -42,9 +42,10 @@ class NPCEngine:
         device: str | None = None,
         load_in_8bit: bool = False,
         torch_dtype: torch.dtype | None = None,
+        adapter_path: str | None = None,
     ):
         """Load the diffusion LM. On a 16GB GPU use load_in_8bit=True; on 24GB+
-        fp16/bf16 is fine."""
+        fp16/bf16 is fine. adapter_path loads a LoRA adapter on top."""
         from transformers import AutoModel, AutoTokenizer
 
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -61,6 +62,9 @@ class NPCEngine:
         self.model = AutoModel.from_pretrained(model_id, **kwargs)
         if not load_in_8bit:
             self.model = self.model.to(self.device)
+        if adapter_path:
+            from peft import PeftModel
+            self.model = PeftModel.from_pretrained(self.model, adapter_path)
         self.model.eval()
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True)
         self.mask_token_id = self.tokenizer.convert_tokens_to_ids(MASK_TOKEN)
@@ -68,9 +72,10 @@ class NPCEngine:
         self.eos_ids = set(eos if isinstance(eos, list) else [eos])
 
     # ---- prompt building -------------------------------------------------
-    def _prompt_ids(self, persona: Persona, world_state: str, player_line: str) -> torch.Tensor:
+    def _prompt_ids(self, persona: Persona, world_state: str, player_line: str,
+                    history: list | None = None) -> torch.Tensor:
         messages = [
-            {"role": "system", "content": persona.system_prompt(world_state)},
+            {"role": "system", "content": persona.system_prompt(world_state, history)},
             {"role": "user", "content": player_line},
         ]
         ids = self.tokenizer.apply_chat_template(
@@ -107,6 +112,7 @@ class NPCEngine:
         persona: Persona,
         world_state: str,
         player_line: str,
+        history: list | None = None,
         n_candidates: int = 8,
         steps: int = 32,
         max_new_tokens: int = 64,
@@ -115,7 +121,7 @@ class NPCEngine:
         confidence_threshold: float = 0.45,
     ) -> NPCResponse:
         t0 = time.perf_counter()
-        prompt_ids = self._prompt_ids(persona, world_state, player_line)
+        prompt_ids = self._prompt_ids(persona, world_state, player_line, history)
         prompt_len = prompt_ids.shape[1]
 
         canvas = torch.full(

@@ -8,6 +8,25 @@ The card stays CLEAN (never masked) — only the NPC's line is denoised.
 from dataclasses import dataclass, field
 
 
+RULES = (
+    "Rules: stay in character at all times. Reply with 1-2 short spoken "
+    "lines only (under 40 words). Never break character, never mention "
+    "being an AI."
+)
+
+
+def system_prompt_for(name: str, card: str, world_state: str,
+                      history: list | None = None) -> str:
+    """THE canonical NPC system prompt — used by the engine at inference AND
+    by the fine-tune data builder, so train and inference formats match."""
+    parts = [f"You are {name}. {card}"]
+    if history:
+        parts.append("Recent conversation:\n" + "\n".join(history))
+    parts.append(f"Current situation: {world_state}")
+    parts.append(RULES)
+    return "\n\n".join(parts)
+
+
 @dataclass
 class Persona:
     name: str
@@ -18,17 +37,15 @@ class Persona:
     # Safe canned lines used when model confidence is below threshold.
     fallback_lines: list = field(default_factory=list)
 
-    def system_prompt(self, world_state: str) -> str:
+    def card_text(self) -> str:
         return (
-            f"You are {self.name}, {self.role}.\n"
-            f"Personality: {self.personality}\n"
-            f"Speech style: {self.speech_style}\n"
-            f"What you know: {self.knowledge}\n"
-            f"Current situation: {world_state}\n\n"
-            f"Rules: stay in character at all times. Reply with 1-2 short spoken "
-            f"lines only (under 40 words). Never break character, never mention "
-            f"being an AI. Use only knowledge {self.name} would plausibly have."
+            f"{self.role}. Personality: {self.personality}. "
+            f"Speech style: {self.speech_style}. "
+            f"What you know: {self.knowledge}."
         )
+
+    def system_prompt(self, world_state: str, history: list | None = None) -> str:
+        return system_prompt_for(self.name, self.card_text(), world_state, history)
 
 
 STARTER_PERSONAS = [

@@ -11,9 +11,12 @@ The diffusion-native features used here:
   ships a safe canned line instead of a broken one (the anti-gameslop guard)
 """
 
-from .personas import Persona, STARTER_PERSONAS
+from .personas import Persona, STARTER_PERSONAS, system_prompt_for
 from .engine import NPCEngine, NPCResponse
 
-__version__ = "0.1.2"
+__version__ = "0.2.0"
 
-__all__ = ["Persona", "STARTER_PERSONAS", "NPCEngine", "NPCResponse"]
+__all__ = [
+    "Persona", "STARTER_PERSONAS", "system_prompt_for",
+    "NPCEngine", "NPCResponse",
+]

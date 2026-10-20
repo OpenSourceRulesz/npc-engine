@@ -3,3 +3,5 @@ data/*.gz
 __pycache__/
 .pytest_cache/
 .scratch/
+.venvs/
+.smoke_cache/
