@@ -10,6 +10,10 @@ Phase 0 (base model, zero training) is validated — see `PHASE0_RESULTS.md`.
 Phase 1 is a LoRA fine-tune on 74k openly licensed dialogue triples —
 `colab_finetune.ipynb` runs the whole thing free on Colab.
 
+**Playable demo:** `colab_game.ipynb` runs *Base of Three*, a tiny survivor-
+camp game (3 survivors, 3 days, state-driven dialogue) on the base model —
+no fine-tune needed.
+
 ## The diffusion-native design
 
 1. The persona card + world state + player line form the prompt, kept fully

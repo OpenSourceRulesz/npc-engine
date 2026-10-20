@@ -14,7 +14,7 @@ The diffusion-native features used here:
 from .personas import Persona, STARTER_PERSONAS, system_prompt_for
 from .engine import NPCEngine, NPCResponse
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 __all__ = [
     "Persona", "STARTER_PERSONAS", "system_prompt_for",
