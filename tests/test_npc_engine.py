@@ -4,7 +4,7 @@ import json
 
 import torch
 
-from npc_engine.data.convert_agentlans import convert_row
+from npc_engine.data.convert_agentlans import convert_file, convert_row
 from npc_engine.engine import NPCEngine
 from npc_engine.personas import Persona
 
@@ -27,8 +27,7 @@ ROW = {
 
 
 def test_convert_row_basic():
-    triples, skipped = convert_row(ROW)
-    assert len(triples) == 2
+    triples, skipped = convert_row(ROW)    assert len(triples) == 2
     t0 = triples[0]
     assert t0["persona"]["name"] == "Renn"
     assert t0["persona"]["description"] == "A weathered traveler with a scar."
@@ -201,3 +200,25 @@ def test_loader_uses_quantization_config_for_8bit(monkeypatch):
     assert "quantization_config" in captured
     assert captured.get("device_map") == "auto"
     assert eng.mask_token_id == MASK
+
+
+def test_convert_file_survives_lone_surrogate(tmp_path):
+    """Regression (2026-10-20 Colab run): the agentlans source contains lone
+    UTF-16 surrogates (broken emoji); writing them strict utf-8 crashed the
+    converter with UnicodeEncodeError. They must be replaced, not fatal."""
+    row = {
+        "setting": "A gate.",
+        "characters": {"A": "Guard A.", "B": "Traveler B."},
+        "conversation": [
+            {"from": "A", "message": "Halt, who goes there?"},
+            {"from": "B", "message": "Just a traveler \ud821 passing through."},
+        ],
+    }
+    src = tmp_path / "src.jsonl"
+    src.write_text(json.dumps(row, ensure_ascii=True) + "\n", encoding="utf-8")
+    out = tmp_path / "out.jsonl"
+    stats = convert_file(src, out)
+    assert stats["triples"] == 1
+    written = out.read_text(encoding="utf-8")
+    json.loads(written)  # must be valid, strictly-decodable utf-8 JSON
+    assert "\ud821" not in written

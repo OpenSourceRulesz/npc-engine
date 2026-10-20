@@ -41,7 +41,7 @@ def restore_cell() -> str:
         "    p.parent.mkdir(parents=True, exist_ok=True)",
         "    p.write_bytes(base64.b64decode(b64))",
         "import npc_engine",
-        'print("npc_engine version:", npc_engine.__version__, " (must say 0.2.0)")',
+        'print("npc_engine version:", npc_engine.__version__, " (must say 0.2.1)")',
     ]
     return "\n".join(lines)
 

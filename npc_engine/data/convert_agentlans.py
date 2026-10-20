@@ -69,6 +69,12 @@ def convert_row(row: dict, context_turns: int = 6, min_words: int = 2,
     return triples, skipped
 
 
+def _writable(s: str) -> str:
+    """Replace lone UTF-16 surrogates (broken emoji in the source data) that
+    strict utf-8 cannot encode — one bad row must not kill the whole run."""
+    return s.encode("utf-8", "replace").decode("utf-8")
+
+
 def convert_file(path: pathlib.Path, out_path: pathlib.Path,
                  context_turns=6, min_words=2, max_words=120, limit=None):
     total_rows, total_triples = 0, 0
@@ -86,7 +92,7 @@ def convert_file(path: pathlib.Path, out_path: pathlib.Path,
             for s, v in sk.items():
                 skipped[s] += v
             for t in triples:
-                out.write(json.dumps(t, ensure_ascii=False) + "\n")
+                out.write(_writable(json.dumps(t, ensure_ascii=False)) + "\n")
             total_triples += len(triples)
             if limit and total_rows >= limit:
                 break
