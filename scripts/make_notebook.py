@@ -44,14 +44,17 @@ def main():
            "- **Confidence**: does the top candidate's score feel honest? Do weak lines score low?\n",
            "- **Fallbacks**: low-confidence turns ship a canned line instead of a broken one\n",
            "- **Diversity**: are the 8 candidates actually different lines?\n"),
-        code("!pip install -q transformers accelerate bitsandbytes"),
+        # Dream's custom code needs transformers 4.53.x: 5.x removed the
+        # 'default' entry from ROPE_INIT_FUNCTIONS and Dream's rotary
+        # embedding crashes with KeyError: 'default' during model init.
+        code('!pip install -q "transformers==4.53.3" accelerate bitsandbytes'),
         md("## Restore the `npc_engine` package (embedded in this notebook)"),
         code(*restore),
         md("## Load the model (8-bit fits a T4 16GB)"),
         code("from npc_engine.engine import NPCEngine\n",
              "from npc_engine.personas import STARTER_PERSONAS\n",
              "import npc_engine\n",
-             "print('npc_engine version:', npc_engine.__version__)  # must say 0.1.1 or later\n",
+             "print('npc_engine version:', npc_engine.__version__)  # must say 0.1.2 or later\n",
              "\n",
              "engine = NPCEngine(load_in_8bit=True)\n",
              "print('ready on', engine.device)\n"),

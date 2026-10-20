@@ -2,3 +2,4 @@ data/*.jsonl
 data/*.gz
 __pycache__/
 .pytest_cache/
+.scratch/
